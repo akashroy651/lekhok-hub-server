@@ -39,6 +39,7 @@ async function run() {
     // contest api
     app.get('/contest', async (req, res) => {
        const query = {}
+       // user vittik email khuja
        const {email} = req.query;
        if (email){
         query.creatorEmail = email;
