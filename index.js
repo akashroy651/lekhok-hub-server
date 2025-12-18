@@ -9,9 +9,47 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 const port = process.env.PORT || 3000;
 
+//
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./lekhok-hub-client-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+
+
 // middle ware
 app.use(express.json());
 app.use(cors());
+
+//
+const verifyEBToken = async (req, res, next) => {
+    // console.log('headers in the middleware', req.headers.authorization)
+    const token = req.headers.authorization;
+
+    if (!token) {
+       return res.status(401).send({message: 'unauthorized access'})
+    }
+
+    try{
+        const idToken = token.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken)
+        console.log('decoded in the token', decoded)
+        req.decoded_email = decoded.email
+
+         next();
+    }
+    catch(error){
+        return res.status(401).send({message: 'unauthorized access'})
+    }
+   
+}
+
+
+
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d3mrlwo.mongodb.net/?appName=Cluster0`;
 
@@ -32,6 +70,26 @@ async function run() {
     // database create
     const db = client.db("lekhok-hub-db");
     const contestCollection = db.collection("contests");
+    const userCollection = db.collection("users");
+
+    //users related api
+    app.post('/users', async (req,res) => {
+        const user = req.body;
+        user.role = 'user';
+        user.createdAt = new Date();
+
+        //user collection a dekte cai users ace ki na
+        const email = user.email;
+        const userExists = await userCollection.findOne({ email })
+
+        if (userExists) {
+            return res.send({ message: 'user exists'})
+        }
+
+       const  result = await userCollection.insertOne(user);
+       res.send(result) 
+
+    })
 
     // contest api
     app.get("/contests", async (req, res) => {
