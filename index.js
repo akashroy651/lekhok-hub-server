@@ -72,6 +72,26 @@ async function run() {
     const contestCollection = db.collection("contests");
     const userCollection = db.collection("users");
 
+    /// users management api
+    app.get('/users', verifyEBToken, async (req, res) => {
+        const result = await userCollection.find().toArray();
+        res.send(result)
+    })
+
+    app.get('/users/:id', async (req,res) => {
+        
+    })
+
+    //>
+    app.get('/users/:email/role', async (req, res) => {
+        const email = req.params.email;
+        const query = {email}
+        const user = await userCollection.findOne(query)
+        res.send({role : user?.role || 'user'})
+    })
+//<
+
+
     //users related api
     app.post('/users', async (req,res) => {
         const user = req.body;
@@ -90,6 +110,24 @@ async function run() {
        res.send(result) 
 
     })
+
+    // users management patch make a admin & remove admin
+    app.patch('/users/:id', async (req, res) => {
+        const id = req.params.id;
+        const roleInfo = req.body;
+        console.log('deki ki ase ', id, roleInfo)
+        const query = { _id: new ObjectId(id)}
+        const updatedDoc = {
+            $set: {
+                role: roleInfo.role
+            }
+        }
+        const result = await userCollection.updateOne(query, updatedDoc)
+        res.send(result)
+
+    })
+
+
 
     // contest api
     app.get("/contests", async (req, res) => {
@@ -112,6 +150,22 @@ async function run() {
       const result = await contestCollection.findOne(query);
       res.send(result);
     });
+
+    // contestUpdate api
+    app.patch('/contests/:id', async (req, res) => {
+        const id = req.params.id;
+        const updatedContest = req.body;
+        const query = { _id: new ObjectId(id)};
+        const updatedDoc = {
+            $set: updatedContest,
+        }
+
+        const result = await contestCollection.updateOne(query,updatedDoc);
+        res.send(result);
+
+    })
+
+    //<
 
     app.post("/contests", async (req, res) => {
       const contest = req.body;
