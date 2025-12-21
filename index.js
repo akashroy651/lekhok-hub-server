@@ -106,12 +106,6 @@ async function run() {
     app.get('/users/:email/role',  async (req, res) => {
         const email = req.params.email;
 
-              // token এর email আর params এর email match কিনা চেক
-    if(email !== req.decoded_email){
-      return res.status(403).send({ message: 'forbidden access'})
-    }
-
-
         const query = {email}
         const user = await userCollection.findOne(query)
         res.send({role : user?.role || 'user'})
