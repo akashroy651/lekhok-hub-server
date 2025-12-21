@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cors());
 
 //
-const verifyEBToken = async (req, res, next) => {
+const verifyFBToken = async (req, res, next) => {
     // console.log('headers in the middleware', req.headers.authorization)
     const token = req.headers.authorization;
 
@@ -38,7 +38,7 @@ const verifyEBToken = async (req, res, next) => {
         const decoded = await admin.auth().verifyIdToken(idToken)
         console.log('decoded in the token', decoded)
         req.decoded_email = decoded.email
-
+        console.log("TOKEN EMAIL:", req.decoded_email);
          next();
     }
     catch(error){
@@ -72,8 +72,28 @@ async function run() {
     const contestCollection = db.collection("contests");
     const userCollection = db.collection("users");
 
+
+    //> middle ware with database access
+    // middle admin before allowing admin activity
+    // must be used after verifyFBToken middleware
+    const verifyAdmin = async (req, res, next) => {
+        const email = req.decoded_email;
+        const query = { email };
+        const user = await userCollection.findOne(query);
+
+        if(!user || user.role !== 'admin'){
+            return res.status(403).send({ message: 'forbidden access'})
+        }
+      console.log("VERIFY ADMIN USER", user);
+        next();
+    }
+
+    //<
+
+
+
     /// users management api
-    app.get('/users', verifyEBToken, async (req, res) => {
+    app.get('/users', verifyFBToken, async (req, res) => {
         const result = await userCollection.find().toArray();
         res.send(result)
     })
@@ -83,8 +103,15 @@ async function run() {
     })
 
     //>
-    app.get('/users/:email/role', async (req, res) => {
+    app.get('/users/:email/role', verifyFBToken, async (req, res) => {
         const email = req.params.email;
+
+              // token এর email আর params এর email match কিনা চেক
+    if(email !== req.decoded_email){
+      return res.status(403).send({ message: 'forbidden access'})
+    }
+
+
         const query = {email}
         const user = await userCollection.findOne(query)
         res.send({role : user?.role || 'user'})
@@ -112,10 +139,10 @@ async function run() {
     })
 
     // users management patch make a admin & remove admin
-    app.patch('/users/:id', async (req, res) => {
+    // role pore new vabe use kora 
+    app.patch('/users/:id/role', verifyFBToken, verifyAdmin, async (req, res) => {
         const id = req.params.id;
         const roleInfo = req.body;
-        console.log('deki ki ase ', id, roleInfo)
         const query = { _id: new ObjectId(id)}
         const updatedDoc = {
             $set: {
