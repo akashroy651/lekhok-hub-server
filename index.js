@@ -103,7 +103,7 @@ async function run() {
     })
 
     //>
-    app.get('/users/:email/role', verifyFBToken, async (req, res) => {
+    app.get('/users/:email/role',  async (req, res) => {
         const email = req.params.email;
 
               // token এর email আর params এর email match কিনা চেক
