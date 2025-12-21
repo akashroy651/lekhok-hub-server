@@ -71,6 +71,7 @@ async function run() {
     const db = client.db("lekhok-hub-db");
     const contestCollection = db.collection("contests");
     const userCollection = db.collection("users");
+    const participantCollection = db.collection("participants");
 
 
     //> middle ware with database access
@@ -89,6 +90,30 @@ async function run() {
     }
 
     //<
+
+
+app.post("/participants", async (req, res) => {
+ const { participant, scores, totalScore } = req.body;
+//   const newParticipant = {
+//     contestId,
+//     userEmail,
+//     paymentStatus: "paid",
+//     submissionLink: "",
+//     score: null,
+//     submitDate: null,
+//   };
+
+  const result = await participantCollection.insertOne({
+    ...participant,
+    scores,
+    totalScore
+  });
+  res.send(result);
+});
+
+
+
+
 
 
 
@@ -151,13 +176,21 @@ async function run() {
 
 
     // contest api
+    // email use hosce my-contest 
+    // jeta paid 
     app.get("/contests", async (req, res) => {
       const query = {};
-      // user vittik email khuja
-      const { email } = req.query;
+      // user upor email khuja
+      const { email, paymentStatus } = req.query;
       if (email) {
         query.creatorEmail = email;
       }
+
+      // paymentStatus  jodi paid hoy
+      if (paymentStatus) {
+        query.paymentStatus = paymentStatus;
+      }
+
 
       const cursor = contestCollection.find(query).sort({ _id: -1 });
       const result = await cursor.toArray();
