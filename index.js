@@ -91,26 +91,70 @@ async function run() {
 
     //<
 
-
+/// score diye post kora  ( contest participant)
 app.post("/participants", async (req, res) => {
  const { participant, scores, totalScore } = req.body;
-//   const newParticipant = {
-//     contestId,
-//     userEmail,
-//     paymentStatus: "paid",
-//     submissionLink: "",
-//     score: null,
-//     submitDate: null,
-//   };
+
 
   const result = await participantCollection.insertOne({
     ...participant,
-    scores,
+    ...scores,
     totalScore
   });
   res.send(result);
 });
 
+
+///>  leaderBoard / Winner List
+// app.get('/participants', async (req,res) => {
+//     const participant = await participantCollection.find().sort({totalScore: -1}).toArray();
+
+// })
+
+///>/   total entry fee
+app.get("/participants", async (req, res) => {
+  try {
+    const participants = await participantCollection
+      .find()
+      .sort({ totalScore: -1 })         // highest score first
+      .toArray();
+
+    // calculate total entry fee
+    const totalEntryFee = participants.reduce((sum, p) => {
+      return sum + Number(p.entryFee);
+    }, 0);
+
+    const prizePool = {
+      first: totalEntryFee * 0.5,
+      second: totalEntryFee * 0.3,
+      third: totalEntryFee * 0.2,
+    };
+
+    const leaderboard = participants.map((p, idx) => {
+      return {
+        rank: idx + 1,
+        email: p.creatorEmail,
+        title: p.title,
+        totalScore: p.totalScore,
+        prize:
+          idx === 0
+            ? prizePool.first
+            : idx === 1
+            ? prizePool.second
+            : idx === 2
+            ? prizePool.third
+            : 0,
+      };
+    });
+console.log('totalEntryFee',leaderboard)
+    res.send({ totalEntryFee, leaderboard });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+
+//////</
 
 
 
