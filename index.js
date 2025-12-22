@@ -139,7 +139,7 @@ app.get("/participants", async (req, res) => {
         prize:
           index === 0
             ? prizePool.first
-            : idx === 1
+            : index === 1
             ? prizePool.second
             : idx === 2
             ? prizePool.third
