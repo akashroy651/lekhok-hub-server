@@ -130,7 +130,7 @@ app.get("/participants", async (req, res) => {
       third: totalEntryFee * 0.2,
     };
 
-    const leaderboard = participants.map((p, idx) => {
+    const leaderboard = participants.map((p, index) => {
       return {
         rank: idx + 1,
         email: p.creatorEmail,
