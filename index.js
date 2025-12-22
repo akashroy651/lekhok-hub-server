@@ -141,7 +141,7 @@ app.get("/participants", async (req, res) => {
             ? prizePool.first
             : index === 1
             ? prizePool.second
-            : idx === 2
+            : index === 2
             ? prizePool.third
             : 0,
       };
