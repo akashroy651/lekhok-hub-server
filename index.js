@@ -125,28 +125,28 @@ app.get("/participants", async (req, res) => {
     }, 0);
 
     const prizePool = {
-      first: totalEntryFee * 0.5,
-      second: totalEntryFee * 0.3,
-      third: totalEntryFee * 0.2,
+      first: totalEntryFee * 0.8,
+      second: totalEntryFee * 0.5,
+      third: totalEntryFee * 0.3,
     };
 
-    const leaderboard = participants.map((p, index) => {
+    const leaderboard = participants.map((p, idx) => {
       return {
         rank: idx + 1,
         email: p.creatorEmail,
         title: p.title,
         totalScore: p.totalScore,
         prize:
-          index === 0
+          idx === 0
             ? prizePool.first
-            : index === 1
+            : idx === 1
             ? prizePool.second
-            : index === 2
+            : idx === 2
             ? prizePool.third
             : 0,
       };
     });
-console.log('totalEntryFee',leaderboard)
+// console.log('totalEntryFee',leaderboard)
     res.send({ totalEntryFee, leaderboard });
   } catch (error) {
     res.status(500).send({ message: error.message });
