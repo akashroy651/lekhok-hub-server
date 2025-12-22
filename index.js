@@ -137,7 +137,7 @@ app.get("/participants", async (req, res) => {
         title: p.title,
         totalScore: p.totalScore,
         prize:
-          idx === 0
+          index === 0
             ? prizePool.first
             : idx === 1
             ? prizePool.second
